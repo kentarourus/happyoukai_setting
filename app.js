@@ -10,11 +10,6 @@ const state = {
   maxAttended: 0
 };
 
-// Initial Samples
-const SAMPLES = {
-  a: ['A1', 'C6', 'E5', 'D1'], // No overlap sample
-  b: ['A4', 'D4', 'E7', 'B2', 'F4', 'G2'] // High overlap sample
-};
 
 // SVG Coordinates for Campus Map
 const BLDG_COORDS = {
@@ -28,12 +23,7 @@ const elements = {
   selectedCountBadge: document.getElementById('selected-count-badge'),
   scheduledSlotsBadge: document.getElementById('scheduled-slots-badge'),
   btnClearAll: document.getElementById('btn-clear-all'),
-  btnSample1: document.getElementById('btn-load-sample-1'),
-  btnSample2: document.getElementById('btn-load-sample-2'),
   searchInput: document.getElementById('search-input'),
-  textIdsInput: document.getElementById('text-ids-input'),
-  parseWarning: document.getElementById('parse-warning'),
-  invalidIdsList: document.getElementById('invalid-ids-list'),
   categoriesAccordion: document.getElementById('categories-accordion'),
   conflictAlert: document.getElementById('conflict-alert'),
   conflictDesc: document.getElementById('conflict-desc'),
@@ -69,18 +59,8 @@ function setupEventListeners() {
   elements.btnClearAll.addEventListener('click', () => {
     state.selectedIds.clear();
     state.activeRouteIndex = 0;
-    elements.textIdsInput.value = '';
-    elements.parseWarning.classList.add('hidden');
     updateCheckboxes();
     updateUI();
-  });
-
-  // Sample load buttons
-  elements.btnSample1.addEventListener('click', () => {
-    loadSample('a');
-  });
-  elements.btnSample2.addEventListener('click', () => {
-    loadSample('b');
   });
 
   // Search input
@@ -88,74 +68,6 @@ function setupEventListeners() {
     state.searchQuery = e.target.value;
     renderCategoriesList();
   });
-
-  // Textarea input (sync to checks)
-  elements.textIdsInput.addEventListener('input', (e) => {
-    syncTextToCheckbox(e.target.value);
-  });
-}
-
-// Load a specific sample set
-function loadSample(key) {
-  state.selectedIds.clear();
-  state.activeRouteIndex = 0;
-  SAMPLES[key].forEach(id => state.selectedIds.add(id));
-  elements.textIdsInput.value = SAMPLES[key].join(', ');
-  elements.parseWarning.classList.add('hidden');
-  updateCheckboxes();
-  updateUI();
-}
-
-// Sync text input area to the checkbox state
-function syncTextToCheckbox(textValue) {
-  // Split tokens by comma, whitespace or newlines
-  const tokens = textValue
-    .split(/[\s,\n]+/)
-    .map(t => t.trim().toUpperCase())
-    .filter(t => t.length > 0);
-
-  const validTokens = [];
-  const invalidTokens = [];
-
-  tokens.forEach(token => {
-    const exists = PRESENTATIONS.some(p => p.id === token);
-    if (exists) {
-      validTokens.push(token);
-    } else {
-      invalidTokens.push(token);
-    }
-  });
-
-  // Show warnings for invalid IDs
-  if (invalidTokens.length > 0) {
-    elements.invalidIdsList.textContent = invalidTokens.join(', ');
-    elements.parseWarning.classList.remove('hidden');
-  } else {
-    elements.parseWarning.classList.add('hidden');
-  }
-
-  // Update selected list with valid parsed tokens
-  state.selectedIds.clear();
-  state.activeRouteIndex = 0;
-  validTokens.forEach(id => state.selectedIds.add(id));
-
-  updateCheckboxes();
-  updateUI({ skipTextareaSync: true });
-}
-
-// Sync current state to text input area
-function syncCheckboxToText() {
-  const sortedIds = Array.from(state.selectedIds).sort((a, b) => {
-    // Sort logically (A1, A2, B1, etc.)
-    const aMatch = a.match(/^([A-Z]+)(\d+)$/);
-    const bMatch = b.match(/^([A-Z]+)(\d+)$/);
-    if (aMatch && bMatch) {
-      if (aMatch[1] !== bMatch[1]) return aMatch[1].localeCompare(bMatch[1]);
-      return parseInt(aMatch[2]) - parseInt(bMatch[2]);
-    }
-    return a.localeCompare(b);
-  });
-  elements.textIdsInput.value = sortedIds.join(', ');
 }
 
 // Sync the checkboxes inside the DOM list
@@ -407,13 +319,9 @@ function solveSchedules() {
 }
 
 // Calculate and refresh UI display based on current selections
-function updateUI(options = {}) {
+function updateUI() {
   // Sync count stats in header
   elements.selectedCountBadge.textContent = state.selectedIds.size;
-
-  if (!options.skipTextareaSync) {
-    syncCheckboxToText();
-  }
 
   // Calculate schedule solution
   const solution = solveSchedules();
@@ -499,7 +407,7 @@ function renderRouteTabs() {
     
     tab.addEventListener('click', () => {
       state.activeRouteIndex = index;
-      updateUI({ skipTextareaSync: true });
+      updateUI();
     });
     
     elements.routeTabs.appendChild(tab);
