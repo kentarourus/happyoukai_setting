@@ -219,7 +219,6 @@ function renderCategoriesList() {
       };
 
       item.addEventListener('click', handleToggle);
-      cb.addEventListener('click', (e) => e.stopPropagation());
     });
 
     elements.categoriesAccordion.appendChild(accordionItem);
