@@ -3,6 +3,9 @@ import { TIMETABLE, CATEGORIES, PRESENTATIONS } from './data.js';
 // Application State
 const state = {
   selectedIds: new Set(),
+  pinnedIds: new Set(),
+  selectedSlotFilter: 'all',
+  theme: 'dark',
   activeRouteIndex: 0,
   searchQuery: '',
   optimalSchedules: [],
@@ -46,8 +49,34 @@ function getBldgId(buildingStr) {
   return null;
 }
 
+// Helper: Toggle pin state
+function togglePin(id) {
+  if (state.pinnedIds.has(id)) {
+    state.pinnedIds.delete(id);
+  } else {
+    state.pinnedIds.add(id);
+    state.selectedIds.add(id); // Ensure pinned item is selected
+  }
+  state.activeRouteIndex = 0;
+  renderCategoriesList();
+  updateUI();
+}
+
 // Initialize Application
 function init() {
+  // Load saved theme preference
+  const savedTheme = localStorage.getItem('happyoukai-theme') || 'dark';
+  state.theme = savedTheme;
+  if (savedTheme === 'light') {
+    document.body.classList.add('light-theme');
+    const sunIcon = document.querySelector('.sun-icon');
+    const moonIcon = document.querySelector('.moon-icon');
+    if (sunIcon && moonIcon) {
+      sunIcon.classList.add('hidden');
+      moonIcon.classList.remove('hidden');
+    }
+  }
+
   renderCategoriesList();
   setupEventListeners();
   updateUI();
@@ -58,6 +87,7 @@ function setupEventListeners() {
   // Clear all button
   elements.btnClearAll.addEventListener('click', () => {
     state.selectedIds.clear();
+    state.pinnedIds.clear();
     state.activeRouteIndex = 0;
     updateCheckboxes();
     updateUI();
@@ -68,6 +98,53 @@ function setupEventListeners() {
     state.searchQuery = e.target.value;
     renderCategoriesList();
   });
+
+  // Theme toggle button
+  const themeToggle = document.getElementById('theme-toggle');
+  if (themeToggle) {
+    themeToggle.addEventListener('click', () => {
+      const isLight = document.body.classList.toggle('light-theme');
+      state.theme = isLight ? 'light' : 'dark';
+      localStorage.setItem('happyoukai-theme', state.theme);
+      
+      const sunIcon = themeToggle.querySelector('.sun-icon');
+      const moonIcon = themeToggle.querySelector('.moon-icon');
+      if (sunIcon && moonIcon) {
+        if (isLight) {
+          sunIcon.classList.add('hidden');
+          moonIcon.classList.remove('hidden');
+        } else {
+          sunIcon.classList.remove('hidden');
+          moonIcon.classList.add('hidden');
+        }
+      }
+    });
+  }
+
+  // Time filter chips container delegation
+  const chipsContainer = document.querySelector('.time-filter-chips');
+  if (chipsContainer) {
+    chipsContainer.addEventListener('click', (e) => {
+      const chip = e.target.closest('.time-chip');
+      if (!chip) return;
+      
+      // Update active class
+      chipsContainer.querySelectorAll('.time-chip').forEach(c => c.classList.remove('active'));
+      chip.classList.add('active');
+      
+      state.selectedSlotFilter = chip.getAttribute('data-slot');
+      renderCategoriesList();
+    });
+  }
+
+  // Timeline click delegation for pin toggle
+  elements.scheduleTimeline.addEventListener('click', (e) => {
+    const pinBtn = e.target.closest('.btn-pin-toggle');
+    if (pinBtn) {
+      const targetId = pinBtn.getAttribute('data-id');
+      togglePin(targetId);
+    }
+  });
 }
 
 // Sync the checkboxes inside the DOM list
@@ -76,12 +153,20 @@ function updateCheckboxes() {
   checkboxes.forEach(cb => {
     const id = cb.getAttribute('data-id');
     const item = cb.closest('.pres-item');
+    const pinBtn = item.querySelector('.btn-pin-toggle');
+    
     if (state.selectedIds.has(id)) {
       cb.checked = true;
       item.classList.add('checked');
     } else {
       cb.checked = false;
       item.classList.remove('checked');
+    }
+    
+    if (state.pinnedIds.has(id)) {
+      pinBtn?.classList.add('pinned');
+    } else {
+      pinBtn?.classList.remove('pinned');
     }
   });
 }
@@ -99,15 +184,64 @@ function renderCategoriesList() {
   PRESENTATIONS.forEach(p => {
     const key = p.id.charAt(0);
     if (groups[key]) {
-      // Check query match (match ID, title, room, building, category name)
-      const q = state.searchQuery.toLowerCase();
-      const match = !q || 
-        p.id.toLowerCase().includes(q) || 
-        p.title.toLowerCase().includes(q) || 
-        p.room.toLowerCase().includes(q) ||
-        CATEGORIES[key].name.toLowerCase().includes(q);
+      // 1. Text Search matching
+      const q = state.searchQuery.toLowerCase().trim();
+      let matchesText = !q;
       
-      if (match) {
+      if (q) {
+        // Match presentation properties
+        const basicMatch = p.id.toLowerCase().includes(q) || 
+                           p.title.toLowerCase().includes(q) || 
+                           p.room.toLowerCase().includes(q) ||
+                           CATEGORIES[key].name.toLowerCase().includes(q);
+        
+        // Match time-based queries like "③" or "3" or "9:10"
+        let matchesTime = false;
+        
+        // Map slot symbols/numbers to actual slot indices
+        const slotSymbolMap = {
+          '①': 1, '1': 1, 'one': 1,
+          '②': 2, '2': 2, 'two': 2,
+          '③': 3, '3': 3, 'three': 3,
+          '④': 4, '4': 4, 'four': 4,
+          '⑤': 5, '5': 5, 'five': 5
+        };
+
+        if (slotSymbolMap[q]) {
+          matchesTime = p.slots.includes(slotSymbolMap[q]);
+        } else {
+          // Check if query matches TIMETABLE slot names or times
+          const matchingSlots = [];
+          TIMETABLE.forEach(t => {
+            if (t.type === 'slot') {
+              const slotLabel1 = `発表${t.index}`;       // 発表3
+              const slotLabel2 = `発表${`①②③④⑤`[t.index - 1]}`; // 発表③
+              const isMatch = t.start.includes(q) || 
+                              t.end.includes(q) || 
+                              slotLabel1.includes(q) || 
+                              slotLabel2.includes(q);
+              if (isMatch) {
+                matchingSlots.push(t.index);
+              }
+            }
+          });
+          
+          if (matchingSlots.length > 0) {
+            matchesTime = matchingSlots.some(s => p.slots.includes(s));
+          }
+        }
+        
+        matchesText = basicMatch || matchesTime;
+      }
+      
+      // 2. Chip Filter matching
+      let matchesChip = true;
+      if (state.selectedSlotFilter !== 'all') {
+        const filterIndex = parseInt(state.selectedSlotFilter);
+        matchesChip = p.slots.includes(filterIndex);
+      }
+      
+      if (matchesText && matchesChip) {
         groups[key].push(p);
       }
     }
@@ -121,7 +255,7 @@ function renderCategoriesList() {
     const list = groups[key];
     
     // Skip categories with no matching presentations if searching
-    if (state.searchQuery && list.length === 0) return;
+    if ((state.searchQuery || state.selectedSlotFilter !== 'all') && list.length === 0) return;
     
     visibleAccordionCount++;
 
@@ -152,6 +286,7 @@ function renderCategoriesList() {
         <div class="pres-list">
           ${list.map(p => {
             const isChecked = state.selectedIds.has(p.id);
+            const isPinned = state.pinnedIds.has(p.id);
             return `
               <div class="pres-item ${isChecked ? 'checked' : ''}" data-id="${p.id}">
                 <div class="pres-checkbox-wrapper">
@@ -177,6 +312,12 @@ function renderCategoriesList() {
                     </span>
                   </div>
                 </div>
+                <!-- Pin Toggle Button -->
+                <button type="button" class="btn-pin-toggle ${isPinned ? 'pinned' : ''}" data-id="${p.id}" title="この発表を見学スケジュールに固定します">
+                  <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10M12 17v4" />
+                  </svg>
+                </button>
               </div>
             `;
           }).join('')}
@@ -197,6 +338,14 @@ function renderCategoriesList() {
       const id = cb.getAttribute('data-id');
 
       const handleToggle = (e) => {
+        const pinBtn = e.target.closest('.btn-pin-toggle');
+        if (pinBtn) {
+          e.stopPropagation();
+          const targetId = pinBtn.getAttribute('data-id');
+          togglePin(targetId);
+          return;
+        }
+
         // Prevent click trigger overlap between checkbox and container
         if (e.target !== cb) {
           cb.checked = !cb.checked;
@@ -207,6 +356,7 @@ function renderCategoriesList() {
           item.classList.add('checked');
         } else {
           state.selectedIds.delete(id);
+          state.pinnedIds.delete(id); // Deselecting also unpins
           item.classList.remove('checked');
         }
 
@@ -260,11 +410,17 @@ function solveSchedules() {
   function explore(slotIndex, currentMap, usedIds) {
     if (slotIndex > 5) {
       const attended = Object.keys(usedIds).length;
-      results.push({
-        schedule: { ...currentMap }, // slot -> presentation object or null
-        attendedCount: attended,
-        attendedIds: new Set(Object.keys(usedIds))
-      });
+      
+      // Pin constraint: the schedule MUST contain all pinned presentation IDs
+      const containsAllPinned = Array.from(state.pinnedIds).every(id => usedIds[id]);
+      
+      if (containsAllPinned) {
+        results.push({
+          schedule: { ...currentMap }, // slot -> presentation object or null
+          attendedCount: attended,
+          attendedIds: new Set(Object.keys(usedIds))
+        });
+      }
       return;
     }
 
@@ -334,6 +490,17 @@ function updateUI() {
     elements.simulationResults.classList.add('hidden');
     elements.conflictAlert.classList.add('hidden');
     elements.scheduledSlotsBadge.textContent = '0 / 5';
+    resetCampusMap();
+    return;
+  }
+
+  // Handle case where pinned presentations conflict and no schedule can be generated
+  if (state.optimalSchedules.length === 0) {
+    elements.emptyState.classList.add('hidden');
+    elements.simulationResults.classList.add('hidden');
+    elements.conflictAlert.classList.remove('hidden');
+    elements.scheduledSlotsBadge.textContent = '0 / 5';
+    elements.conflictDesc.innerHTML = `⚠️ <strong>ピン留め（固定）の競合:</strong> 固定した発表の組み合わせ（${Array.from(state.pinnedIds).join(', ')}）に時間枠の重複があるか、枠上限を超えています。一部のピン留めを解除してください。`;
     resetCampusMap();
     return;
   }
@@ -478,6 +645,7 @@ function renderTimelineAndMap() {
         const cat = CATEGORIES[catKey];
         const bldgId = getBldgId(pres.building);
         if (bldgId) buildingSequence.push(bldgId);
+        const isPinned = state.pinnedIds.has(pres.id);
 
         tlItem.innerHTML = `
           <div class="timeline-badge-time">
@@ -489,9 +657,16 @@ function renderTimelineAndMap() {
               <span class="timeline-slot-label" style="color: ${cat.color}">発表${item.name.replace('発表', '')}</span>
               <span class="timeline-time-text">${item.start} - ${item.end} (${item.end.split(':')[1] - item.start.split(':')[1] + 60 * (item.end.split(':')[0] - item.start.split(':')[0])}分間)</span>
             </div>
-            <div class="timeline-card-title">
-              <span class="pres-id" style="color: ${cat.color}; border-color: ${cat.color}22; margin-right: 6px; font-weight: 800;">${pres.id}</span>
-              <strong>${pres.title}</strong>
+            <div class="timeline-card-title-row">
+              <div class="timeline-card-title">
+                <span class="pres-id" style="color: ${cat.color}; border-color: ${cat.color}22; margin-right: 6px; font-weight: 800;">${pres.id}</span>
+                <strong>${pres.title}</strong>
+              </div>
+              <button class="btn-pin-toggle ${isPinned ? 'pinned' : ''}" data-id="${pres.id}" title="この発表を見学スケジュールに固定します">
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                  <path stroke-linecap="round" stroke-linejoin="round" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10M12 17v4" />
+                </svg>
+              </button>
             </div>
             <div class="timeline-card-meta">
               <span class="meta-item">

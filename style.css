@@ -1229,3 +1229,334 @@ body {
     width: 100%;
   }
 }
+
+/* Theme Toggle Button */
+.theme-toggle-btn {
+  background: rgba(15, 23, 42, 0.6);
+  border: 1px solid var(--border-color);
+  border-radius: 50%;
+  width: 38px;
+  height: 38px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--text-secondary);
+  cursor: pointer;
+  transition: all var(--transition-fast);
+}
+
+.theme-toggle-btn:hover {
+  background: var(--accent-light);
+  border-color: var(--border-highlight);
+  color: var(--accent-color);
+  box-shadow: var(--shadow-sm);
+  transform: scale(1.05);
+}
+
+.theme-toggle-btn svg {
+  transition: transform var(--transition-normal);
+}
+
+.theme-toggle-btn:hover svg {
+  transform: rotate(15deg);
+}
+
+/* Time Filter Wrapper */
+.time-filter-wrapper {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-top: 12px;
+  margin-bottom: 4px;
+}
+
+.time-filter-label {
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: var(--text-secondary);
+}
+
+.time-filter-chips {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+
+.time-chip {
+  background: rgba(15, 23, 42, 0.4);
+  border: 1px solid var(--border-color);
+  color: var(--text-secondary);
+  padding: 6px 12px;
+  border-radius: 20px;
+  font-family: var(--font-family);
+  font-size: 0.8rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all var(--transition-fast);
+}
+
+.time-chip:hover {
+  border-color: var(--text-primary);
+  color: var(--text-primary);
+}
+
+.time-chip.active {
+  background: var(--accent-color);
+  border-color: var(--accent-color);
+  color: white;
+  box-shadow: 0 0 10px var(--accent-glow);
+  font-weight: 600;
+}
+
+/* Pin Toggle Button */
+.btn-pin-toggle {
+  background: transparent;
+  border: none;
+  color: var(--text-muted);
+  cursor: pointer;
+  padding: 6px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 4px;
+  transition: all var(--transition-fast);
+}
+
+.btn-pin-toggle:hover {
+  color: var(--warning);
+  background: rgba(245, 158, 11, 0.1);
+}
+
+.btn-pin-toggle.pinned {
+  color: var(--warning);
+  filter: drop-shadow(0 0 4px var(--warning-glow));
+}
+
+.btn-pin-toggle svg {
+  width: 16px;
+  height: 16px;
+}
+
+/* Specific item alignments for Pin */
+.pres-item {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.pres-details {
+  flex: 1;
+}
+
+.pres-checkbox-wrapper {
+  margin-top: 0;
+  align-self: center;
+}
+
+.pres-item .btn-pin-toggle {
+  margin-left: 8px;
+  flex-shrink: 0;
+}
+
+.timeline-card-title-row {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.timeline-card-title-row .btn-pin-toggle {
+  margin-left: 0;
+  flex-shrink: 0;
+  margin-top: -4px;
+}
+
+/* Light Theme Variables */
+body.light-theme {
+  --bg-app: #f1f5f9;
+  --bg-card: rgba(255, 255, 255, 0.75);
+  --bg-card-solid: #ffffff;
+  --bg-bldg: #e2e8f0;
+  --border-color: rgba(0, 0, 0, 0.08);
+  --border-highlight: rgba(99, 102, 241, 0.4);
+  
+  --text-primary: #0f172a;
+  --text-secondary: #475569;
+  --text-muted: #94a3b8;
+  
+  --accent-color: #4f46e5;
+  --accent-hover: #3730a3;
+  --accent-glow: rgba(79, 70, 229, 0.15);
+  --accent-light: rgba(79, 70, 229, 0.08);
+  
+  --success: #059669;
+  --success-glow: rgba(5, 150, 105, 0.15);
+  --warning: #d97706;
+  --warning-glow: rgba(217, 119, 6, 0.15);
+  --danger: #dc2626;
+  --danger-glow: rgba(220, 38, 38, 0.15);
+  
+  /* Shadows */
+  --shadow-sm: 0 2px 8px rgba(15, 23, 42, 0.05);
+  --shadow-md: 0 8px 24px rgba(15, 23, 42, 0.05);
+  --shadow-lg: 0 16px 40px rgba(15, 23, 42, 0.08);
+  --glow-indigo: 0 0 20px rgba(79, 70, 229, 0.15);
+  --glow-warning: 0 0 20px rgba(217, 119, 6, 0.15);
+  
+  background-image: 
+    radial-gradient(at 0% 0%, rgba(99, 102, 241, 0.05) 0px, transparent 50%),
+    radial-gradient(at 100% 100%, rgba(6, 182, 212, 0.03) 0px, transparent 50%);
+}
+
+/* Light Theme Component Overrides */
+body.light-theme ::-webkit-scrollbar-track {
+  background: #f1f5f9;
+}
+body.light-theme ::-webkit-scrollbar-thumb {
+  background: #cbd5e1;
+}
+body.light-theme ::-webkit-scrollbar-thumb:hover {
+  background: #94a3b8;
+}
+
+body.light-theme .stat-badge {
+  background: #ffffff;
+}
+
+body.light-theme .theme-toggle-btn {
+  background: #ffffff;
+}
+
+body.light-theme .search-input, 
+body.light-theme .search-box input {
+  background: #ffffff;
+}
+
+body.light-theme .search-input:focus, 
+body.light-theme .search-box input:focus {
+  background: #ffffff;
+}
+
+body.light-theme .acc-item {
+  background: rgba(226, 232, 240, 0.4);
+}
+
+body.light-theme .acc-item:hover {
+  background: rgba(226, 232, 240, 0.6);
+}
+
+body.light-theme .acc-count-badge {
+  background: #ffffff;
+}
+
+body.light-theme .pres-checkbox {
+  background: #ffffff;
+}
+
+body.light-theme .pres-id {
+  background: rgba(226, 232, 240, 0.5);
+}
+
+body.light-theme .pres-item:hover {
+  background: rgba(0, 0, 0, 0.02);
+}
+
+body.light-theme .pres-item.checked {
+  background: rgba(79, 70, 229, 0.05);
+}
+
+body.light-theme .route-tabs-container {
+  background: rgba(226, 232, 240, 0.5);
+}
+
+body.light-theme .timeline-content-card {
+  background: rgba(226, 232, 240, 0.3);
+}
+
+body.light-theme .timeline-item.fixed-event .timeline-content-card {
+  background: rgba(226, 232, 240, 0.5);
+}
+
+body.light-theme .timeline-item.free-slot .timeline-content-card {
+  background: rgba(226, 232, 240, 0.15);
+}
+
+body.light-theme .movement-card {
+  background: #ffffff;
+}
+
+body.light-theme .movement-card.inter-bldg {
+  background: rgba(217, 119, 6, 0.06);
+}
+
+body.light-theme .movement-card.urgent-bldg {
+  background: rgba(220, 38, 38, 0.06);
+}
+
+body.light-theme .skipped-list-item {
+  background: rgba(220, 38, 38, 0.02);
+  border-color: rgba(220, 38, 38, 0.15);
+}
+
+body.light-theme .skipped-id-badge {
+  background: rgba(220, 38, 38, 0.08);
+}
+
+body.light-theme .campus-map-wrapper {
+  background: rgba(226, 232, 240, 0.3);
+}
+
+/* Light Theme Map Text readability overrides */
+body.light-theme .building-group.visited .bldg-name {
+  fill: var(--accent-hover);
+}
+
+body.light-theme .building-group.visited .bldg-desc {
+  fill: var(--text-secondary);
+}
+
+body.light-theme .building-group.visited .bldg-rect {
+  fill: var(--accent-light);
+}
+
+body.light-theme .building-group.current-active .bldg-rect {
+  fill: var(--accent-color);
+}
+
+body.light-theme .building-group.current-active .bldg-name {
+  fill: #ffffff;
+}
+
+body.light-theme .building-group.current-active .bldg-desc {
+  fill: rgba(255, 255, 255, 0.9);
+}
+
+/* Light Theme Time Chip active overrides to fix contrast & background specificity */
+body.light-theme .time-chip {
+  background: rgba(226, 232, 240, 0.6);
+  color: var(--text-secondary);
+}
+
+body.light-theme .time-chip.active {
+  background: var(--accent-color);
+  border-color: var(--accent-color);
+  color: #ffffff;
+  box-shadow: 0 0 10px var(--accent-glow);
+}
+
+/* Logo Header Text readability override for Light Theme */
+body.light-theme .logo-text h1 {
+  background: linear-gradient(135deg, var(--text-primary) 40%, var(--accent-color));
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+/* Timeline card & movement divider readability overrides for Light Theme */
+body.light-theme .timeline-movement-divider {
+  border-left: 2px dashed var(--border-color);
+}
+
+body.light-theme .timeline-card-meta {
+  border-top: 1px solid var(--border-color);
+}
+

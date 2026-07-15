@@ -23,6 +23,16 @@
         </div>
       </div>
       <div class="header-status">
+        <button id="theme-toggle" class="theme-toggle-btn" aria-label="テーマ切替">
+          <!-- Sun Icon -->
+          <svg class="sun-icon" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" width="20" height="20">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364-6.364l-.707.707M6.343 17.657l-.707.707m0-12.728l.707.707m12.728 12.728l.707.707M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+          </svg>
+          <!-- Moon Icon -->
+          <svg class="moon-icon hidden" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" width="20" height="20">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z" />
+          </svg>
+        </button>
         <div class="stat-badge">
           <span class="stat-label">選択中の発表:</span>
           <span id="selected-count-badge" class="stat-value">0</span>
@@ -49,7 +59,20 @@
           <svg class="search-icon" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
           </svg>
-          <input type="text" id="search-input" placeholder="発表番号やタイトル、教室名で検索...">
+          <input type="text" id="search-input" placeholder="発表番号、タイトル、教室、時間(③など)で検索...">
+        </div>
+
+        <!-- Time Filter Chips -->
+        <div class="time-filter-wrapper">
+          <span class="time-filter-label">時間帯で絞り込み:</span>
+          <div class="time-filter-chips">
+            <button class="time-chip active" data-slot="all">すべて</button>
+            <button class="time-chip" data-slot="1">① 9:10</button>
+            <button class="time-chip" data-slot="2">② 9:40</button>
+            <button class="time-chip" data-slot="3">③ 10:10</button>
+            <button class="time-chip" data-slot="4">④ 10:45</button>
+            <button class="time-chip" data-slot="5">⑤ 11:15</button>
+          </div>
         </div>
 
         <!-- Section 2: Field List (Checkboxes) -->
