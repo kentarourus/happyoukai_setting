@@ -1451,6 +1451,12 @@ body.light-theme .acc-count-badge {
 
 body.light-theme .pres-checkbox {
   background: #ffffff;
+  border-color: var(--text-muted);
+}
+
+body.light-theme .pres-checkbox:checked {
+  background: var(--accent-color);
+  border-color: var(--accent-color);
 }
 
 body.light-theme .pres-id {
@@ -1462,7 +1468,9 @@ body.light-theme .pres-item:hover {
 }
 
 body.light-theme .pres-item.checked {
-  background: rgba(79, 70, 229, 0.05);
+  background: rgba(79, 70, 229, 0.12);
+  border-left: 3px solid var(--accent-color);
+  padding-left: 7px; /* Compensate for border-left to avoid layout shift */
 }
 
 body.light-theme .route-tabs-container {
